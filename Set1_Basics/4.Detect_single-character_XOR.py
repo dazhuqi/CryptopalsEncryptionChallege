@@ -1,6 +1,9 @@
 """
-
+One of the 60-character strings in this file has been encrypted by single-character XOR.
+Find it.
 """
+
+import os
 
 frequency = {
     'a': 8.17, 'b': 1.49, 'c': 2.78, 'd': 4.25, 'e': 12.70, 'f': 2.23, 'g': 2.02,
@@ -11,10 +14,15 @@ frequency = {
 
 def score(text):
     text = text.lower()
+
+    # define the frequently printable character
+    printable = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!' \n"
     score = 0
     for char in text:
         if char in frequency:
             score += frequency[char]
+        elif char not in printable:
+            score -= 50
     return score
 
 def xor_decrypt(ciphertext, key):
@@ -54,7 +62,8 @@ def detect_single_text_xor(file_path):
 
     return best_key, best_decryption
 
-file_path = 'D:\PycharmConfig\PycharmMiscProject\\4.txt'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(current_dir, '4.txt')
 
 key, decrypted_text = detect_single_text_xor(file_path)
 print(f"Found key: {chr(key)}")
