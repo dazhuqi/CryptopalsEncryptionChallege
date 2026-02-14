@@ -20,9 +20,19 @@
 
 import base64
 import itertools
+import importlib.util
+import sys
+import os
 
-from Basic5 import ciphertext
+module_name = "5.Implement_repeating-key_XOR"
+file_path = os.path.join(os.path.dirname(__file__), "5.Implement_repeating-key_XOR.py")
 
+spec = importlib.util.spec_from_file_location(module_name, file_path)
+module = importlib.util.module_from_spec(spec)
+sys.modules[module_name] = module
+spec.loader.exec_module(module)
+
+ciphertext = module.ciphertext
 
 def hamming_distance(s1, s2):
     return sum(bin(x ^ y).count('1') for x, y in zip(s1, s2))
@@ -76,7 +86,8 @@ def read_and_decode_file(file_path):
     return decoded_data
 
 def main():
-    file_path = 'D:/PycharmConfig/PycharmMiscProject/6.txt'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, '6.txt')
     ciphertext = read_and_decode_file(file_path)
 
     print("Guess start KEYSIZE...")
