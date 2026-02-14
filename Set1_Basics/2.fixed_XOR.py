@@ -1,4 +1,3 @@
-# Fixed XOR
 # Write a function that takes two equal-length buffers and produces their XOR combination.
 #
 # If your function works properly, then when you feed it the string:
