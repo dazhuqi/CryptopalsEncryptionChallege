@@ -9,8 +9,10 @@
 
 from Crypto.Cipher import AES
 import base64
+import os
 
-file_path = 'D:/PycharmConfig/PycharmMiscProject/7.txt'
+current_dir = os.path.dirname(__file__)
+file_path = os.path.join(current_dir, '7.txt')
 
 with open(file_path, 'r') as f:
     b64_data = f.read()
@@ -20,4 +22,11 @@ key = b"YELLOW SUBMARINE"
 cipher = AES.new(key, AES.MODE_ECB)
 plaintext = cipher.decrypt(ciphertext)
 
-print(plaintext.decode("utf-8", errors="ignore"))
+# how many byte padded
+padding_len = plaintext[-1]
+# cut the padding bytes
+if all(b == padding_len for b in plaintext[-padding_len:]):
+    clean_plaintext = plaintext[:-padding_len]
+    print(clean_plaintext.decode("utf-8", errors="ignore"))
+else:
+    print("Verification Error!")
