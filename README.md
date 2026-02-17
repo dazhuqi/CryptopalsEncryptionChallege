@@ -23,22 +23,22 @@ The challenges are organized by Sets. Each script is designed to be self-contain
 ```text
 .
 ├── Set1/                  # The Basics (Challenges 1-8)
+│   ├── 4.txt
+│   ├── 6.txt
+│   ├── 7.txt
+│   ├── 8.txt
 │   ├── c01_convert_hex_to_base64.py
 │   ├── c02_fixed_xor.py
 │   ├── c03_single_byte_xor_cipher.py
 │   ├── c04_detect_single_character_xor.py
-│   ├── 4.txt
 │   ├── c05_implement_repeating_key_xor.py
 │   ├── c06_break_repeating_key_xor.py
-│   ├── 6.txt
 │   ├── c07_aes_in_ecb_mode.py
-│   ├── 7.txt
-│   ├── c08_detect_aes_in_ecb_mode.py
-│   └── 8.txt
+│   └── c08_detect_aes_in_ecb_mode.py
 ├── Set2/                  # Block Crypto (Challenges 9-16)
+│   ├── 10.txt
 │   ├── c09_implement_pkcs7_padding.py
 │   ├── c10_implement_cbc_mode.py
-│   ├── 10.txt
 │   └── c11_an_ecb_or_cbc_detection_oracle.py
 ├── .gitignore
 └── README.md
