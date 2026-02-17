@@ -24,8 +24,8 @@ import importlib.util
 import sys
 import os
 
-module_name = "5.Implement_repeating-key_XOR"
-file_path = os.path.join(os.path.dirname(__file__), "5.Implement_repeating-key_XOR.py")
+module_name = "c05_implement_repeating_key_xor"
+file_path = os.path.join(os.path.dirname(__file__), "c05_implement_repeating_key_xor.py")
 
 spec = importlib.util.spec_from_file_location(module_name, file_path)
 module = importlib.util.module_from_spec(spec)
