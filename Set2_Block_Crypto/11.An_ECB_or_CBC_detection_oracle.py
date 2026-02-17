@@ -16,7 +16,18 @@ You should end up with a piece of code that, pointed at a block box that might b
 
 import os
 import random
+import importlib.util
+import sys
 from Crypto.Cipher import AES
+
+file_path = "9.Implement_PKCS#7_padding.py"
+module_name = "padding_module"
+
+spec = importlib.util.spec_from_file_location(module_name, file_path)
+padding_module = importlib.util.module_from_spec(spec)
+
+sys.modules[module_name] = padding_module
+spec.loader.exec_module(padding_module)
 
 def encryption_oracle(data):
     key = os.urandom(16)
@@ -25,4 +36,36 @@ def encryption_oracle(data):
     suffix = os.urandom(random.randint(5, 10))
     plaintext = prefix + data + suffix
     # padded
-    plaintext = pad(plaintext, 16)
+    plaintext = padding_module.pkcs7_pad(plaintext, 16)
+
+    if random.randint(0, 1) == 0:
+        # use ECB
+        cipher = AES.new(key, AES.MODE_ECB)
+        return cipher.encrypt(plaintext), "ECB"
+    else:
+        # use CBC
+        iv = os.urandom(16)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        return cipher.encrypt(plaintext), "CBC"
+
+def detector(ciphertext):
+    # cut the ciphertext into 16bytes blocks
+    blocks = [ciphertext[i : i + 16] for i in range(0, len(ciphertext), 16)]
+    if len(blocks) > len(set(blocks)):
+        return "ECB"
+    else:
+        return "CBC"
+
+if __name__ == "__main__":
+    # construct a duplicated input which is long enough
+    my_input = b"A" * 50
+
+    success_count = 0
+    for _ in range(100):
+        ct, actual_mode = encryption_oracle(my_input)
+        detected_mode = detector(ct)
+
+        if actual_mode == detected_mode:
+            success_count += 1
+
+    print(f"Detected accuracy: {success_count}/100")
