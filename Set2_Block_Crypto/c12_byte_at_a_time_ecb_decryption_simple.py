@@ -33,3 +33,12 @@ for instance, "AAAAAAAA", "AAAAAAAB", "AAAAAAAC", remembering the first block of
 6. Repeat for the next byte.
 """
 
+import base64
+from Crypto.Cipher import AES
+
+KEY = b"YELLOW SUBMARINE"
+SECRET_B64 = ("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
+              "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq"
+              "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg"
+              "YnkK")
+SECRET = base64.b64decode(SECRET_B64)
