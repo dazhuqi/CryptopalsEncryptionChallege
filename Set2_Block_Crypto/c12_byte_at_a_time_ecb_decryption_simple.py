@@ -35,6 +35,7 @@ for instance, "AAAAAAAA", "AAAAAAAB", "AAAAAAAC", remembering the first block of
 
 import base64
 from Crypto.Cipher import AES
+from cryptography.hazmat.primitives.ciphers import Cipher
 
 KEY = b"YELLOW SUBMARINE"
 SECRET_B64 = ("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
@@ -42,3 +43,12 @@ SECRET_B64 = ("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
               "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg"
               "YnkK")
 SECRET = base64.b64decode(SECRET_B64)
+
+def oracle(user_input):
+    # PKCS#7 padding
+    def pad(data, size = 16):
+        p = size - len(data) % size
+        return data + bytes([p] * p)
+
+    cipher = AES.new(KEY, AES.MODE_ECB)
+    return cipher.encrypt(pad(user_input + SECRET))
