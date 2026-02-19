@@ -35,6 +35,7 @@ for instance, "AAAAAAAA", "AAAAAAAB", "AAAAAAAC", remembering the first block of
 
 import base64
 from Crypto.Cipher import AES
+from astropy.io.fits.header import BLOCK_SIZE
 from cryptography.hazmat.primitives.ciphers import Cipher
 
 KEY = b"YELLOW SUBMARINE"
@@ -52,3 +53,65 @@ def oracle(user_input):
 
     cipher = AES.new(KEY, AES.MODE_ECB)
     return cipher.encrypt(pad(user_input + SECRET))
+
+def find_block_size():
+    initial_len = len(oracle(b""))
+
+    for i in range(1, 64):
+        length = len(oracle(b"A" * i))
+        if length > initial_len:
+            return length - initial_len
+        return 16
+
+def is_ecb(block_size):
+    ciphertext = oracle(b"A" * block_size * 2)
+    return ciphertext[:block_size] == ciphertext[block_size:block_size * 2]
+
+# crack process
+def crack_ecb():
+    block_size = find_block_size()
+    print(f"[+] Detected Block Size: {block_size}")
+
+    if not is_ecb(block_size):
+        print("[-] Not ECB mode, exiting.")
+        return
+
+    discovered = b""
+    # we don't know the specific length of SECRET, but it doesn't exceed the cipher length of oracle(b"")
+    total_len = len(oracle(b""))
+
+    print("[*] Cracking")
+
+    for _ in range(total_len):
+        # construct special padding
+        padding_len = (block_size - 1 - (len(discovered) % block_size))
+        padding = b"A" * padding_len
+
+        # confirm which cipher block we're going to observe
+        target_block_idx = len(discovered) // block_size
+        target_start = target_block_idx * block_size
+        target_end = target_start + block_size
+
+        # get the target cipher
+        target_output = oracle(padding)[target_start:target_end]
+
+        found_byte = None
+        for i in range(256):
+            test_input = padding + discovered + bytes([i]) # current padding + solved string + attempting string
+            test_output = oracle(test_input)[target_start:target_end]
+
+            if test_output == target_output:
+                found_byte = bytes([i])
+                break
+
+        if found_byte:
+            discovered += found_byte
+            print(discovered.decode(errors='replace').replace('\n', ' '), end='\r')
+        else:
+            break
+
+    print("\n\n[+] Full Decrypted Secret:")
+    print(discovered.decode(errors='ignore'))
+
+if __name__ == "__main__":
+    crack_ecb()
