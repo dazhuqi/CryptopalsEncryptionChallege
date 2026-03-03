@@ -46,14 +46,14 @@ The challenges are organized by Sets. Each script is designed to be self-contain
 │   ├── c15_pkcs7_padding_validation.py
 │   └── c16_cbc_bitflipping_attacks.py
 ├── Set3/                  # Block and Stream Crypto (Challenges 17-24)
-│   ├── c17_the_cbc_padding_oracle
-│   ├── c18_implement_ctr_the_stream_cipher_mode
-│   ├── c19_break_fixed_nonce_ctr_mode_using_substitutions
-│   ├── c20_break_fixed_nonce_ctr_statistically
-│   ├── c21_implement_the_MT19937_Mersenne_twister_rng
-│   ├── c22_crack_an_MT19937_seed
-│   ├── c23_clone_an_MT19937_rng_from_its_output
-│   └── c24_create_the_MT19937_stream_cipher_and_break_it
+│   ├── c17_the_cbc_padding_oracle.py
+│   ├── c18_implement_ctr_the_stream_cipher_mode.py
+│   ├── c19_break_fixed_nonce_ctr_mode_using_substitutions.py
+│   ├── c20_break_fixed_nonce_ctr_statistically.py
+│   ├── c21_implement_the_MT19937_Mersenne_twister_rng.py
+│   ├── c22_crack_an_MT19937_seed.py
+│   ├── c23_clone_an_MT19937_rng_from_its_output.py
+│   └── c24_create_the_MT19937_stream_cipher_and_break_it.py
 ├── .gitignore
 └── README.md
 
