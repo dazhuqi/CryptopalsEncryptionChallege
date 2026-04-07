@@ -16,3 +16,17 @@ If you are writing in a language with exceptions, like Python or Ruby, make your
 Crypto nerds know where we're going with this. Bear with us.
 """
 
+def pkcs7_unpad(padded_data: bytes) -> bytes:
+    if len(padded_data) == 0:
+        raise ValueError("Data can not be empty!")
+    padding_len = padded_data[-1]
+
+    padding = padded_data[-padding_len:]
+    if list(padding) != [padding_len] * padding_len:
+        raise ValueError("Do not have valid padding!")
+
+    return padded_data[:-padding_len]
+
+if __name__=='__main__':
+    padded = b"ICE ICE BABY\x05\x05\x05\x05"
+    print(f"result is: {pkcs7_unpad(padded)}")
