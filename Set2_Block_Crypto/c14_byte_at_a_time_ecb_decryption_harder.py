@@ -6,8 +6,6 @@ AES-128-ECB(random-prefix || attacker-controlled || target-bytes, random-key)
 
 Same goal: decrypt the target-bytes.
 """
-from fontTools.misc.eexec import decrypt
-
 from c12_byte_at_a_time_ecb_decryption_simple import oracle
 
 def find_prefix_info():
