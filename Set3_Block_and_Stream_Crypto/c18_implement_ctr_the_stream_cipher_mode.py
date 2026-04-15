@@ -32,3 +32,28 @@ Decryption is identical to encryption. Generate the same keystream, XOR, and rec
 
 Decrypt the string at the top of this function, then use your CTR function to encrypt and decrypt other things.
 """
+
+import base64
+
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
+
+def ctr_decrypt(ciphertext, key, nonce):
+    # construct 64-bit nonce + 64-bit counter
+    ctr = Counter.new(
+        64,
+        prefix=nonce.to_bytes(8, 'little'),
+        initial_value=0,
+        little_endian=True
+    )
+    cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
+    plaintext = cipher.decrypt(ciphertext)
+    return plaintext
+
+ciphertext = "L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ=="
+decode_ciphertext = base64.b64decode(ciphertext)
+key = b"YELLOW SUBMARINE"
+nonce = 0
+
+plaintext = ctr_decrypt(decode_ciphertext, key, nonce)
+print(f"[+] The decrypted result is: {plaintext.decode()}")
