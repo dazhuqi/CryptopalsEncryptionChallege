@@ -16,3 +16,57 @@ The new "spliced" generator should predict the values of the original.
 Stop and think for a second.
 How would you modify MT19937 to make this attack hard? What would happen if you subjected each tempered output to a cryptographic hash?
 """
+
+def untemper(y):
+    # invert
+    y ^= (y >> 18)
+
+    # invert
+    y ^= (y << 15) & 0xefc60000
+
+    # invert
+    # left shift reversal requires step-by-step iteration due to the presence of a mask
+    temp = y
+    for _ in range(4):
+        temp = y ^ ((temp << 7) & 0x9d2c5680)
+    y = temp
+
+    # invert
+    # right shift reversal
+    temp = y
+    for _ in range(2):
+        temp = y ^ (temp >> 11)
+    y = temp
+
+    return y
+
+import random
+
+def clone_mt19937():
+    # get consecutive 624 output
+    outputs = [random.getrandbits(32) for _ in range(624)]
+
+    # reverse tempering restores 624 internal state integers
+    original_state = [untemper(y) for y in outputs]
+
+    # construct clone generator state
+    # The last 624 indicates that the state has been used up, and the next call will trigger a re-obfuscation (Twist)
+    cloned_state = (3, tuple(original_state + [624]), None)
+
+    # realize clone generator
+    cloned_gen = random.Random()
+    cloned_gen.setstate(cloned_state)
+
+    return cloned_gen
+
+# test
+# original generator generates next value
+cloned = clone_mt19937()
+
+# clone expectation of generator
+expected = random.getrandbits(32)
+actual = cloned.getrandbits(32)
+
+print(f"[+]Original generator next expected value: {expected}")
+print(f"[+]Clone generator expected value: {actual}")
+print(f"[+]Attack success: {expected == actual}!")
