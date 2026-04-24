@@ -19,3 +19,49 @@ As the attacker, recovering the plaintext from the error, extract the key:
 
 P'_1 XOR P'_3
 """
+
+import os
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+BLOCK_SIZE = 16
+KEY = os.urandom(16)
+
+def cbc_encrypt(plaintext, key):
+    # IV -> key
+    cipher = Cipher(algorithms.AES(key), modes.CBC(key), backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(plaintext) + encryptor.finalize()
+
+def cbc_decrypt_and_verify(ciphertext, key):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(key), backend=default_backend())
+    decryptor = cipher.decryptor()
+    decypted_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+
+    # validate is this ASCII
+    for byte in decypted_plaintext:
+        if byte > 127:
+            raise Exception(f"[!]Invalid ASCII character found!", decypted_plaintext)
+
+    return decypted_plaintext
+
+original_plaintext = b"A" * 48
+ciphertext = cbc_encrypt(original_plaintext, KEY)
+
+c1 = ciphertext[0:16]
+attack_ciphertext = c1 + (b'\00' * 16) + c1
+
+try:
+    cbc_decrypt_and_verify(attack_ciphertext, KEY)
+except Exception as e:
+    decrypted_msg = e.args[1]
+
+    p_prime_1 = decrypted_msg[0:16]
+    p_prime_3 = decrypted_msg[32:48]
+
+    recovered_key = bytes([p1 ^ p3 for p1, p3 in zip(p_prime_1, p_prime_3)])
+
+    print(f"Extract KEY: {recovered_key.hex()}")
+    print(f"True KEY: {KEY.hex()}")
+    print(f"Attack res: {recovered_key == KEY}")
