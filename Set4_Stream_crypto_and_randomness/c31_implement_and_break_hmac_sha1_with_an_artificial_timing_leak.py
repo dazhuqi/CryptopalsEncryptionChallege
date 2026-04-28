@@ -22,19 +22,19 @@ import hmac
 import hashlib
 import requests
 import threading
-from flask import Flask, request, Response
+from flask import Flask, request
 
 app = Flask(__name__)
 SECRET_KEY = b"yellow_submarine"
 
-# -- Server logic --
+# -- Server Logic --
 
-def insecure_compare(actual, expected):
-    if len(actual) != len(expected):
+def insecure_compare(a: bytes, b: bytes):
+    if len(a) != len(b):
         return False
 
-    for a, b in zip(actual, expected):
-        if a != b:
+    for x, y in zip(a, b):
+        if x != y:
             return False
         # Vul: For each matching byte, the latency increases by 50ms
         time.sleep(0.05)
@@ -45,58 +45,88 @@ def verify():
     filename = request.args.get('file', '')
     signature = request.args.get('signature', '')
 
-    # calc correct HMAC (SHA1)
-    mac = hmac.new(SECRET_KEY, filename.encode(), hashlib.sha1)
-    correct_signature = mac.hexdigest()
+    try:
+        provided = bytes.fromhex(signature)
+    except:
+        return "Bad signature", 500
 
+    correct = hmac.new(
+        SECRET_KEY,
+        filename.encode(),
+        hashlib.sha1
+    ).digest()
+    
     # use insecure comparison to verify
-    if insecure_compare(signature, correct_signature):
+    if insecure_compare(provided, correct):
         return "OK", 200
     else:
-        return "Signature Mismatch", 500
+        return "Mismatch", 500
 
-# -- attack logic --
+# -- Attack Logic --
+
+TARGET = "http://localhost:9000/test"
+FILENAME = "foo"
+
+SAMPLES = 8
+SLEEP_BETWEEN = 0.01
+
+def measure(sig_hex):
+    samples = []
+
+    for _ in range(SAMPLES):
+        start = time.perf_counter()
+        try:
+            requests.get(TARGET, params={
+                "file": FILENAME,
+                "signature": sig_hex
+            }, timeout=5)
+        except:
+            continue
+        samples.append(time.perf_counter() - start)
+
+    samples.sort()
+
+    # trim mean（去掉最大最小）
+    trimmed = samples[2:-2]
+    return sum(trimmed) / len(trimmed)
 
 def exploit():
-    # wait server to start
-    time.sleep(2)
+    known = b""
 
-    target_url = "http://localhost:9000/test"
-    filename = "foo"
-    # SHA1 hex length is 40 char
-    known_signature = ""
+    print("[*] Start timing attack...")
+    try:
+        # sha1 20 bytes
+        for pos in range(20):
+            best_byte = None
+            best_time = float("inf")
 
-    print(f"[*] Start breaking file  '{filename}'  HMAC...")
+            for b in range(256):
+                test = known + bytes([b]) + b'\x00' * (19 - pos)
+                t = measure(test.hex())
 
-    for position in range(40):
-        best_char = ""
-        max_time = 0
+                if t > best_time:
+                    best_time = t
+                    best_byte = b
 
-        # attempt all hex range
-        for char in "0123456789abcdef":
-            test_signature = known_signature + char + ("0" * (39 - position))
+            known += bytes([best_byte])
 
-            # To compensate for network jitter, multiple measurements can be taken and the average value calculated
-            start = time.time()
-            try:
-                requests.get(target_url, params={"file": filename, "signature": test_signature})
-            except:
-                continue
-            duration = time.time() - start
+            print(f"[+] byte {pos + 1:02d}: {best_byte:02x} | time={best_time:.4f}s | current={known.hex()}")
 
-            if duration > max_time:
-                max_time = duration
-                best_char = char
+        print("\n[!!!] DONE:", known.hex())
 
-        known_signature += best_char
-        print(f"[!] Find the {position+1} th: {best_char} | time consuming: {max_time:.3f}s | current signature: {known_signature}")
+    except KeyboardInterrupt:
+        print("\n[!] Interrupted!")
+        print("[!] Current progress:", known.hex())
 
-    print(f"\n[!] Broke completed! Effective signature is: {known_signature}")
+# -- main logic --
 
 if __name__ == '__main__':
-    server_thread = threading.Thread(target=lambda: app.run(port=9000, debug=False, use_reloader=False))
+    server_thread = threading.Thread(
+        target=lambda: app.run(port=9000, debug=False, use_reloader=False)
+    )
     server_thread.daemon = True
     server_thread.start()
 
     # execute attack!
+    time.sleep(1)
     exploit()
