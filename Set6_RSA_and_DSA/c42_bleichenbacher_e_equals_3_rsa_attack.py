@@ -28,3 +28,87 @@ You can work from Hal Finney's writeup, available on Google, of how Bleichenbach
 You can implement an integer cube root in your language, format the message block you want to forge, leaving sufficient trailing zeros at the end to fill with garbage, then take the cube-root of that block.
 Forge a 1024-bit RSA signature for the string "hi mom". Make sure your implementation actually accepts the signature!
 """
+
+import hashlib
+import re
+
+
+def integer_cube_root(n):
+    """Finds the floor of the cube root of a large integer using binary search."""
+    lo = 0
+    hi = n
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if mid ** 3 < n:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo
+
+
+def forge_signature(message, key_size_bits=1024):
+    """Forges a 1024-bit RSA signature for e=3 by exploiting a lazy parser."""
+    # SHA-1 ASN.1 magic bytes
+    asn1 = b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14'
+    msg_hash = hashlib.sha1(message.encode()).digest()
+
+    # Construct the vulnerable PKCS#1 v1.5 template: [00 01 FF 00] [ASN.1] [HASH]
+    prefix = b'\x00\x01\xff\x00'
+    block = prefix + asn1 + msg_hash
+
+    # Pad with trailing zeros to make it a 1024-bit (128 bytes) block
+    pad_len = (key_size_bits // 8) - len(block)
+    padded_block = block + (b'\x00' * pad_len)
+
+    # Convert the bytes into a giant Python integer
+    target_int = int.from_bytes(padded_block, byteorder='big')
+
+    # Calculate the cube root. We add 1 to ensure that when the signature is cubed,
+    # the resulting "error" or "garbage" modifies the trailing zeros upward,
+    # rather than borrowing from and corrupting the important hash/prefix bits.
+    signature_int = integer_cube_root(target_int) + 1
+
+    return signature_int
+
+
+def broken_verify(message, signature_int, n):
+    """Simulates a vulnerable RSA verifier that does not check right-justification."""
+    # s^3 mod n (In this attack, s^3 is smaller than n, so it won't even wrap)
+    decrypted_int = pow(signature_int, 3, n)
+    decrypted_bytes = decrypted_int.to_bytes(128, byteorder='big')
+
+    # Regex that only verifies the prefix and the hash, ignoring trailing bytes
+    asn1 = re.escape(b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14')
+    msg_hash = re.escape(hashlib.sha1(message.encode()).digest())
+
+    # Match the prefix and hash from the beginning, ignoring what follows
+    pattern = re.compile(br'^\x00\x01\xff+?\x00' + asn1 + msg_hash, re.DOTALL)
+
+    if pattern.match(decrypted_bytes):
+        return True
+    return False
+
+
+# --- Test Execution ---
+if __name__ == "__main__":
+    # Generate a dummy 1024-bit public modulus (n) for testing.
+    # In reality, this would be the target's public key.
+    # We use a large enough number to ensure s^3 < n.
+    target_n = int("C" * 256, 16)
+    test_message = "hi mom"
+
+    print(f"Target Message: '{test_message}'")
+    print("Generating forged signature...")
+
+    # 1. Forge the signature
+    forged_sig = forge_signature(test_message)
+    print(f"Forged Signature (Int): {forged_sig}\n")
+
+    # 2. Test against the broken verifier
+    print("Testing forgery against the vulnerable verifier...")
+    is_valid = broken_verify(test_message, forged_sig, target_n)
+
+    if is_valid:
+        print("SUCCESS: The lazy verifier accepted the forged signature!")
+    else:
+        print("FAILURE: Signature rejected.")
