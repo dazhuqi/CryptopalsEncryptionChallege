@@ -59,3 +59,82 @@ Its SHA-1 fingerprint (after being converted to hex) is:
 0954edd5e0afe5542a4adf012611a91912a3ec16
 Obviously, it also generates the same signature for that string.
 """
+
+import hashlib
+
+p_hex = (
+    "800000000000000089e1855218a0e7dac38136ffafa72eda7"
+    "859f2171e25e65eac698c1702578b07dc2a1076da241c76c6"
+    "2d374d8389ea5aeffd3226a0530cc565f3bf6b50929139ebe"
+    "ac04f48c3c84afb796d61e5a4f9a8fda812ab59494232c7d2"
+    "b4deb50aa18ee9e132bfa85ac4374d7f9091abc3d015efc87"
+    "1a584471bb1"
+)
+p = int(p_hex, 16)
+
+q_hex = "f4f47f05794b256174bba6e9b396a7707e563c5b"
+q = int(q_hex, 16)
+
+g_hex = (
+    "5958c9d3898b224b12672c0b98e06c60df923cb8bc999d119"
+    "458fef538b8fa4046c8db53039db620c094c9fa077ef389b5"
+    "322a559946a71903f990f1f7e0e025e2d7f7cf494aff1a047"
+    "0f5b64c36b625a097f1651fe775323556fe00b3608c887892"
+    "878480e99041be601a62166ca6894bdd41a7054ec89f756ba"
+    "9fc95302291"
+)
+g = int(g_hex, 16)
+
+y_hex = (
+    "84ad4719d044495496a3201c8ff484feb45b962e7302e56a392aee4"
+    "abab3e4bdebf2955b4736012f21a08084056b19bcd7fee56048e004"
+    "e44984e2f411788efdc837a0d2e5abb7b555039fd243ac01f0fb2ed"
+    "1dec568280ce678e931868d23eb095fde9d3779191b8c0299d6e07b"
+    "bb283e6633451e535c45513b2d33c99ea17"
+)
+y = int(y_hex, 16)
+
+h_msg = 0xd2d0714f014a9784047eaeccf956520045c45265
+
+r = 548099063082341131477253921760299949438196259240
+s = 857042759984254168557880549501802188789837994940
+
+target_fingerprint = "0954edd5e0afe5542a4adf012611a91912a3ec16"
+
+
+def recover_private_key():
+    print("CRACKING: Cracking DSA private key via small nonce 'k'...")
+
+    try:
+        r_inv = pow(r, -1, q)
+    except ValueError:
+        print("ERROR: r and q are not coprime, cannot find modular inverse.")
+        return
+
+    for k in range(1, 2**16 + 1):
+        # formula: x = ((s * k) - H(msg)) * r^-1 mod q
+        x = ((s * k) - h_msg) * r_inv % q
+
+        x_hex = hex(x)[2:]
+        if len(x_hex) % 2 != 0:
+            x_hex = "0" + x_hex
+
+        current_fingerprint = hashlib.sha1(x_hex.encode("utf-8")).hexdigest()
+
+        # match fingerprint
+        if current_fingerprint == target_fingerprint:
+            print(f"\n[+] SUCCESS! Found correct nonce k: {k}")
+            print(f"[+] Private Key (x) in Hex: {x_hex}")
+            print(f"[+] Private Key (x) in Dec: {x}")
+
+            # extra validation: g^x mod p = y (public key)
+            if pow(g, x, p) == y:
+                print("[+] Double Check passed: g^x mod p == y")
+            return x, k
+
+    print("\n[-] Failed to find the private key. Check parameter padding or formats.")
+    return None
+
+
+if __name__ == "__main__":
+    recover_private_key()
