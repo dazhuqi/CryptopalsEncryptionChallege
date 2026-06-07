@@ -35,8 +35,6 @@ for instance, "AAAAAAAA", "AAAAAAAB", "AAAAAAAC", remembering the first block of
 
 import base64
 from Crypto.Cipher import AES
-from astropy.io.fits.header import BLOCK_SIZE
-from cryptography.hazmat.primitives.ciphers import Cipher
 
 KEY = b"YELLOW SUBMARINE"
 SECRET_B64 = ("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"

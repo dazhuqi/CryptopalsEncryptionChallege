@@ -18,9 +18,10 @@ import os
 import random
 import importlib.util
 import sys
+from pathlib import Path
 from Crypto.Cipher import AES
 
-file_path = "c09_implement_pkcs7_padding.py"
+file_path = Path(__file__).with_name("c09_implement_pkcs7_padding.py")
 module_name = "padding_module"
 
 spec = importlib.util.spec_from_file_location(module_name, file_path)
