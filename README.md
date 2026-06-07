@@ -32,6 +32,13 @@ only where the challenge needs a raw primitive such as AES.
 - Python 3.8+
 - `pycryptodome`
 - `cryptography`
+- `requests` and `flask` for the timing-leak HTTP challenges
+
+Install the Python dependencies with:
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 Most scripts can be run directly from the repository root with Python:
 
@@ -54,5 +61,6 @@ exact printed output may vary between runs.
 |-- Set5_Diffie_Hellman_and_friends/          # Challenges 33-40
 |-- Set6_RSA_and_DSA/                         # Challenges 41-45 completed
 |-- .gitignore
+|-- requirements.txt
 `-- README.md
 ```
