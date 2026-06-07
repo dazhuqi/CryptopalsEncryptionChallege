@@ -9,9 +9,15 @@ To exploit this: take your collection of ciphertexts and truncate them to a comm
 
 Solve the resulting concatenation of ciphertexts as if for repeating- key XOR, with a key size of the length of the ciphertext you XOR'd.
 """
-import os
 import base64
 import string
+from pathlib import Path
+
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
+
+KEY = b"YELLOW SUBMARINE"
+NONCE = 0
 
 frequency = {
     'a': 8.17, 'b': 1.49, 'c': 2.78, 'd': 4.25, 'e': 12.70, 'f': 2.23, 'g': 2.02,
@@ -26,10 +32,29 @@ def get_score(input_bytes):
         char = chr(b).lower()
         # accelerate weight related in frequency table
         score += frequency.get(char, 0)
+        if char in ".,'\"-!?;:/()":
+            score += 0.5
         # punish
         if char not in string.printable:
-            score -= 10
+            score -= 20
     return score
+
+
+def ctr_encrypt(plaintext, key=KEY, nonce=NONCE):
+    counter = Counter.new(
+        64,
+        prefix=nonce.to_bytes(8, 'little'),
+        initial_value=0,
+        little_endian=True
+    )
+    cipher = AES.new(key, AES.MODE_CTR, counter=counter)
+    return cipher.encrypt(plaintext)
+
+
+def read_plaintexts(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return [base64.b64decode(line.strip()) for line in f if line.strip()]
+
 
 def find_best_key_for_column(column_bytes):
     best_key = 0
@@ -44,14 +69,10 @@ def find_best_key_for_column(column_bytes):
             best_score = current_score
             best_key = key
 
-        return  best_key
+    return best_key
 
-if __name__ == '__main__':
-    # configuration
-    file_path = os.path.join(os.path.dirname(__file__), '20.txt')
-    with open(file_path, 'r') as f:
-        ciphertexts = [base64.b64decode(line.strip()) for line in f if line.strip()]
 
+def break_fixed_nonce_ctr(ciphertexts):
     # truncate
     min_length = min(len(c) for c in ciphertexts)
     truncated_cipher = [c[:min_length] for c in ciphertexts]
@@ -65,9 +86,23 @@ if __name__ == '__main__':
         best_key = find_best_key_for_column(column)
         keystream.append(best_key)
 
+    return bytes(keystream), truncated_cipher
+
+
+def main():
+    file_path = Path(__file__).with_name('20.txt')
+    plaintexts = read_plaintexts(file_path)
+    ciphertexts = [ctr_encrypt(plaintext) for plaintext in plaintexts]
+    keystream, truncated_cipher = break_fixed_nonce_ctr(ciphertexts)
+
+    min_length = len(keystream)
     print(f"[*] Broken key stream (first {min_length} bytes):")
     print(keystream.hex())
 
     for c in truncated_cipher:
         decrypted = bytes([b ^ k for b, k in zip(c, keystream)])
         print(decrypted.decode(errors='ignore'))
+
+
+if __name__ == '__main__':
+    main()
