@@ -3,7 +3,7 @@ One of the 60-character strings in this file has been encrypted by single-charac
 Find it.
 """
 
-import os
+from pathlib import Path
 
 frequency = {
     'a': 8.17, 'b': 1.49, 'c': 2.78, 'd': 4.25, 'e': 12.70, 'f': 2.23, 'g': 2.02,
@@ -46,7 +46,7 @@ def find_best_key(ciphertext):
     return best_key, best_decryption
 
 def detect_single_text_xor(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     best_decryption = None
@@ -62,9 +62,13 @@ def detect_single_text_xor(file_path):
 
     return best_key, best_decryption
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, '4.txt')
 
-key, decrypted_text = detect_single_text_xor(file_path)
-print(f"Found key: {chr(key)}")
-print(f"Decrypted text: {decrypted_text}")
+def main():
+    file_path = Path(__file__).with_name('4.txt')
+    key, decrypted_text = detect_single_text_xor(file_path)
+    print(f"Found key: {chr(key)}")
+    print(f"Decrypted text: {decrypted_text}")
+
+
+if __name__ == "__main__":
+    main()

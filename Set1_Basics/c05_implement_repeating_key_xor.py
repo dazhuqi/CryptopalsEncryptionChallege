@@ -27,4 +27,11 @@ plaintext = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear
 key = 'ICE'
 
 ciphertext = repeating_key_xor(plaintext, key)
-print(ciphertext)
+
+
+def main():
+    print(ciphertext)
+
+
+if __name__ == "__main__":
+    main()

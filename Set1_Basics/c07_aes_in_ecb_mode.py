@@ -9,24 +9,32 @@
 
 from Crypto.Cipher import AES
 import base64
-import os
+from pathlib import Path
 
-current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '7.txt')
 
-with open(file_path, 'r') as f:
-    b64_data = f.read()
-ciphertext = base64.b64decode(b64_data)
+def decrypt_aes_ecb(ciphertext, key):
+    cipher = AES.new(key, AES.MODE_ECB)
+    return cipher.decrypt(ciphertext)
 
-key = b"YELLOW SUBMARINE"
-cipher = AES.new(key, AES.MODE_ECB)
-plaintext = cipher.decrypt(ciphertext)
 
-# how many byte padded
-padding_len = plaintext[-1]
-# cut the padding bytes
-if all(b == padding_len for b in plaintext[-padding_len:]):
-    clean_plaintext = plaintext[:-padding_len]
-    print(clean_plaintext.decode("utf-8", errors="ignore"))
-else:
-    print("Verification Error!")
+def strip_pkcs7_padding(plaintext):
+    padding_len = plaintext[-1]
+    if padding_len == 0 or padding_len > len(plaintext):
+        return plaintext
+    if all(b == padding_len for b in plaintext[-padding_len:]):
+        return plaintext[:-padding_len]
+    return plaintext
+
+
+def main():
+    file_path = Path(__file__).with_name('7.txt')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        b64_data = f.read()
+
+    ciphertext = base64.b64decode(b64_data)
+    plaintext = decrypt_aes_ecb(ciphertext, b"YELLOW SUBMARINE")
+    print(strip_pkcs7_padding(plaintext).decode("utf-8", errors="ignore"))
+
+
+if __name__ == "__main__":
+    main()
