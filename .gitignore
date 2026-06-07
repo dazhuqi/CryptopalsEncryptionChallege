@@ -1,5 +1,33 @@
 .idea/
+
+# Python
 **/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Java
 *.class
+
+# Go
+*.test
+coverage.out
+
+# IDE and local files
 *.iml
+.vscode/
+
+# OS and logs
+.DS_Store
+Thumbs.db
+*.log
