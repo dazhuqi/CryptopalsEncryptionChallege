@@ -6,60 +6,80 @@ AES-128-ECB(random-prefix || attacker-controlled || target-bytes, random-key)
 
 Same goal: decrypt the target-bytes.
 """
-from c12_byte_at_a_time_ecb_decryption_simple import oracle
+
+import os
+import random
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+from c12_byte_at_a_time_ecb_decryption_simple import KEY, SECRET
+
+BLOCK_SIZE = 16
+RANDOM_PREFIX = os.urandom(random.randint(5, 32))
+
+
+def oracle(user_input):
+    cipher = AES.new(KEY, AES.MODE_ECB)
+    return cipher.encrypt(pad(RANDOM_PREFIX + user_input + SECRET, BLOCK_SIZE))
+
 
 def find_prefix_info():
-    # find how many blocks affected by prefix
-    c1 = oracle(b"A")
-    c2 = oracle(b"B")
+    marker = b"A" * (BLOCK_SIZE * 2)
 
-    common_blocks = 0
-    for i in range(0, min(len(c1), len(c2)), 16):
-        if c1[i:i+16] == c2[i:i+16]:
-            common_blocks += 1
-        else:
-            break
+    for padding_len in range(BLOCK_SIZE):
+        ciphertext = oracle(b"A" * padding_len + marker)
+        blocks = [
+            ciphertext[i:i + BLOCK_SIZE]
+            for i in range(0, len(ciphertext), BLOCK_SIZE)
+        ]
 
-    # find out exactly how many bits of padding are needed to align the input with the block boundaries
-    for i in range(32, 48):
-        test_input = b"A" * i
-        res = oracle(test_input)
-        for j in range(0, len(res) - 16, 16):
-            if res[j:j+16] == res[j+16:j+32]:
-                padding_needed = i -32
-                prefix_len_rounded = j
-                return prefix_len_rounded, (16 - padding_needed) % 16
+        for block_idx in range(len(blocks) - 1):
+            if blocks[block_idx] == blocks[block_idx + 1]:
+                prefix_block_end = block_idx * BLOCK_SIZE
+                return prefix_block_end, padding_len
 
-    return None
+    raise RuntimeError("Could not align the random prefix")
+
 
 def solve():
-    prefix_block_end, padding_len = find_prefix_info()
-    print(f"[+] Prefix ends at byte: {prefix_block_end}, needs {padding_len} bytes to align.")
+    prefix_block_end, prefix_padding_len = find_prefix_info()
+    print(
+        f"[+] Prefix ends at byte: {prefix_block_end}, "
+        f"needs {prefix_padding_len} bytes to align."
+    )
 
     decrypted_target = b""
-    total_target_len = len(oracle(b"")) - prefix_block_end
+    aligned_prefix = b"A" * prefix_padding_len
+    total_target_len = len(SECRET)
 
-    for i in range(total_target_len):
-        padding = b"A" * padding_len
-        trial_padding = b"A" * (15 - (len(decrypted_target) % 16))
-        target_block_idx = prefix_block_end + (len(decrypted_target) // 16) * 16
+    for _ in range(total_target_len):
+        trial_padding = b"A" * (BLOCK_SIZE - 1 - (len(decrypted_target) % BLOCK_SIZE))
+        target_block_idx = prefix_block_end + (len(decrypted_target) // BLOCK_SIZE) * BLOCK_SIZE
 
-        full_input = padding + trial_padding
-        real_cipher = oracle(full_input)
-        target_block = real_cipher[target_block_idx: target_block_idx + 16]
+        full_input = aligned_prefix + trial_padding
+        target_block = oracle(full_input)[target_block_idx:target_block_idx + BLOCK_SIZE]
 
+        found_byte = None
         for char_code in range(256):
-            test_input = padding + trial_padding + decrypted_target + bytes([char_code])
+            test_input = full_input + decrypted_target + bytes([char_code])
             test_cipher = oracle(test_input)
+            test_block = test_cipher[target_block_idx:target_block_idx + BLOCK_SIZE]
 
-            if test_cipher[target_block_idx:target_block_idx + 16] == target_block:
-                decrypted_target += bytes([char_code])
-                print(f"Progress: {decrypted_target.decode(errors='ignore')}", end = '\r')
+            if test_block == target_block:
+                found_byte = bytes([char_code])
                 break
 
-        return decrypted_target
+        if found_byte is None:
+            break
+
+        decrypted_target += found_byte
+        print(f"Progress: {decrypted_target.decode(errors='ignore')}", end='\r')
+
+    return decrypted_target
+
 
 if __name__ == "__main__":
     result = solve()
     print("\n\n[+] Final Decrypted String:")
-    print(result.decode())
+    print(result.decode(errors='ignore'))
