@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CBC-MAC Verification Bypass Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h2>CBC-MAC Secure Downloader & Verifier</h2>
+    <p>Status: <strong id="status">Waiting to fetch...</strong></p>
+
+    <script>
+    async function verifyAndInject() {
+        const statusEl = document.getElementById('status');
+        const targetHashHex = "296b8d7cb78a243dda4d0a61d33bbdd1";
+        const keyStr = "YELLOW SUBMARINE";
+
+        try {
+            statusEl.innerText = "Downloading script from Python server...";
+            // 1. Fetch the forged file from the running Python server
+            const response = await fetch('http://localhost:8080/forged.js');
+            const arrayBuffer = await response.arrayBuffer();
+            const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
+
+            statusEl.innerText = "Verifying CBC-MAC...";
+            // 2. Compute CBC-MAC locally using AES-CBC with NoPadding
+            const key = CryptoJS.enc.Utf8.parse(keyStr);
+            const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
+
+            const encrypted = CryptoJS.AES.encrypt(wordArray, key, {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.NoPadding
+            });
+
+            // Extract the final 16 bytes (4 words) as CBC-MAC
+            const ciphertext = encrypted.ciphertext;
+            const lastBlockWords = ciphertext.words.slice(ciphertext.words.length - 4);
+            const computedMacHex = CryptoJS.lib.WordArray.create(lastBlockWords).toString(CryptoJS.enc.Hex);
+
+            console.log("Expected MAC:", targetHashHex);
+            console.log("Computed MAC:", computedMacHex);
+
+            // 3. Conditional execution (Extra Credit Requirement)
+            if (computedMacHex === targetHashHex) {
+                statusEl.innerHTML = "<span style='color:green;'>✓ Hash Matched! Injecting script...</span>";
+
+                const decoder = new TextDecoder('utf-8');
+                const scriptText = decoder.decode(arrayBuffer);
+
+                // Inject into DOM iff it matches
+                const scriptElement = document.createElement('script');
+                scriptElement.text = scriptText;
+                document.body.appendChild(scriptElement);
+            } else {
+                statusEl.innerHTML = "<span style='color:red;'>❌ Security Error: CBC-MAC Mismatch!</span>";
+            }
+        } catch (error) {
+            statusEl.innerText = "Error: " + error.message;
+        }
+    }
+    window.onload = verifyAndInject;
+    </script>
+</body>
+</html>
