@@ -59,7 +59,8 @@ exact printed output may vary between runs.
 |-- Set3_Block_and_Stream_Crypto/             # Challenges 17-24
 |-- Set4_Stream_crypto_and_randomness/        # Challenges 25-32
 |-- Set5_Diffie_Hellman_and_friends/          # Challenges 33-40
-|-- Set6_RSA_and_DSA/                         # Challenges 41-45 completed
+|-- Set6_RSA_and_DSA/                         # Challenges 41-48
+|-- Set7_Hashes/                              # Challenges 49-56
 |-- .gitignore
 |-- requirements.txt
 `-- README.md
