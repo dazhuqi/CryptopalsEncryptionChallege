@@ -90,7 +90,7 @@ def break_fixed_nonce_ctr(ciphertexts):
 
 
 def main():
-    file_path = Path(__file__).with_name('20.txt')
+    file_path = Path(__file__).with_name('data') / 'c20.txt'
     plaintexts = read_plaintexts(file_path)
     ciphertexts = [ctr_encrypt(plaintext) for plaintext in plaintexts]
     keystream, truncated_cipher = break_fixed_nonce_ctr(ciphertexts)

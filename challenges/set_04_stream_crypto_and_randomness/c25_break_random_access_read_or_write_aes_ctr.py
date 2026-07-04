@@ -20,7 +20,7 @@ _SECRET_KEY = os.urandom(16)
 
 def get_secret_plaintext():
     base_dir = os.path.dirname(__file__)
-    file_path = os.path.join(base_dir, '25.txt')
+    file_path = os.path.join(base_dir, 'data', 'c25.txt')
 
     with open(file_path, 'r') as f:
         b64_content = f.read()

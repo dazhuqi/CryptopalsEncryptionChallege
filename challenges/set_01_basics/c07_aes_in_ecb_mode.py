@@ -27,7 +27,7 @@ def strip_pkcs7_padding(plaintext):
 
 
 def main():
-    file_path = Path(__file__).with_name('7.txt')
+    file_path = Path(__file__).with_name('data') / 'c07.txt'
     with open(file_path, 'r', encoding='utf-8') as f:
         b64_data = f.read()
 

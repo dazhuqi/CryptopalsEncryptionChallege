@@ -64,7 +64,7 @@ def detect_single_text_xor(file_path):
 
 
 def main():
-    file_path = Path(__file__).with_name('4.txt')
+    file_path = Path(__file__).with_name('data') / 'c04.txt'
     key, decrypted_text = detect_single_text_xor(file_path)
     print(f"Found key: {chr(key)}")
     print(f"Decrypted text: {decrypted_text}")

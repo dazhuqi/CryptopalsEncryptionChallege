@@ -48,7 +48,7 @@ def aes_cbc_decrypt(ciphertext, key, iv):
 
 if __name__ == '__main__':
     # Configuration
-    file_path = os.path.join(os.path.dirname(__file__), '10.txt')
+    file_path = os.path.join(os.path.dirname(__file__), 'data', 'c10.txt')
     key = b"YELLOW SUBMARINE"
     iv = b'\x00' * 16 # all 0 IV
 

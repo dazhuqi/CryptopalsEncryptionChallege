@@ -20,7 +20,7 @@ def detect_ecb(ciphertext_bytes):
 
 if __name__ == '__main__':
     current_dir = os.path.dirname(__file__)
-    file_path = os.path.join(current_dir, "8.txt")
+    file_path = os.path.join(current_dir, "data", "c08.txt")
 
     with open(file_path, 'r') as f:
         lines = f.readlines()

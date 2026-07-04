@@ -87,7 +87,7 @@ def read_and_decode_file(file_path):
 
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, '6.txt')
+    file_path = os.path.join(current_dir, 'data', 'c06.txt')
     ciphertext = read_and_decode_file(file_path)
 
     print("Guess start KEYSIZE...")
