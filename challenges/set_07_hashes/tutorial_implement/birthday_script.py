@@ -1,6 +1,9 @@
-from Set7_Hashes.Tutorial_Implement import birthdaya
-from Set7_Hashes.Tutorial_Implement import birthdayc
-from Set7_Hashes.Tutorial_Implement import birthdaye
+try:
+    from . import birthdaya, birthdayc, birthdaye
+except ImportError:
+    import birthdaya
+    import birthdayc
+    import birthdaye
 
 K_VALUES = [5, 10, 15, 20, 23, 30, 40, 50]
 TRIALS = 1000

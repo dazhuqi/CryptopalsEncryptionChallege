@@ -13,7 +13,10 @@ import random
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
-from c12_byte_at_a_time_ecb_decryption_simple import KEY, SECRET
+try:
+    from .c12_byte_at_a_time_ecb_decryption_simple import KEY, SECRET
+except ImportError:
+    from c12_byte_at_a_time_ecb_decryption_simple import KEY, SECRET
 
 BLOCK_SIZE = 16
 RANDOM_PREFIX = os.urandom(random.randint(5, 32))
