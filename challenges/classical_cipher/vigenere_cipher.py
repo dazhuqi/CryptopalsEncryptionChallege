@@ -1,7 +1,7 @@
 try:
-    from .CaeserCipher import index_to_char, char_to_index, alphabet
+    from .caesar_cipher import index_to_char, char_to_index, alphabet
 except ImportError:
-    from CaeserCipher import index_to_char, char_to_index, alphabet
+    from caesar_cipher import index_to_char, char_to_index, alphabet
 
 def Vigenere_enc(plaintext, keyword):
     res = ""
