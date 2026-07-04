@@ -10,9 +10,9 @@ implementations are broken.
 
 ## Progress
 
-Solutions are currently implemented through **Set 6, Challenge 45**.
-Challenge files for c46 and later may exist in the tree, but they are not part
-of the completed solution set yet.
+Solutions are currently organized through **Set 7**. Some later challenge files
+may still be exploratory or incomplete, but the repository structure keeps them
+grouped with their corresponding Cryptopals set.
 
 ## Project Overview
 
@@ -43,7 +43,13 @@ python -m pip install -r requirements.txt
 Most scripts can be run directly from the repository root with Python:
 
 ```bash
-python Set1_Basics/c01_convert_hex_to_base64.py
+python challenges/set_01_basics/c01_convert_hex_to_base64.py
+```
+
+Scripts can also be run as modules when their filenames are valid module names:
+
+```bash
+python -m challenges.set_02_block_crypto.c14_byte_at_a_time_ecb_decryption_harder
 ```
 
 Some challenge scripts intentionally use randomness or timing behavior, so their
@@ -53,15 +59,27 @@ exact printed output may vary between runs.
 
 ```text
 .
-|-- Classical_Cipher/                         # Caesar and Vigenere examples
-|-- Set1_Basics/                              # Challenges 1-8
-|-- Set2_Block_Crypto/                        # Challenges 9-16
-|-- Set3_Block_and_Stream_Crypto/             # Challenges 17-24
-|-- Set4_Stream_crypto_and_randomness/        # Challenges 25-32
-|-- Set5_Diffie_Hellman_and_friends/          # Challenges 33-40
-|-- Set6_RSA_and_DSA/                         # Challenges 41-48
-|-- Set7_Hashes/                              # Challenges 49-56
+|-- challenges/
+|   |-- classical_cipher/                     # Caesar and Vigenere examples
+|   |-- set_01_basics/                        # Challenges 1-8
+|   |   `-- data/                             # Set 1 input fixtures
+|   |-- set_02_block_crypto/                  # Challenges 9-16
+|   |   `-- data/                             # Set 2 input fixtures
+|   |-- set_03_block_and_stream_crypto/       # Challenges 17-24
+|   |   `-- data/                             # Set 3 input fixtures
+|   |-- set_04_stream_crypto_and_randomness/  # Challenges 25-32
+|   |   `-- data/                             # Set 4 input fixtures
+|   |-- set_05_diffie_hellman_and_friends/    # Challenges 33-40
+|   |-- set_06_rsa_and_dsa/                   # Challenges 41-48
+|   `-- set_07_hashes/                        # Challenges 49-56
+|       |-- c50_hashing_with_cbc_mac/         # Browser demo assets
+|       `-- tutorial_implement/               # Hash tutorial helpers
 |-- .gitignore
+|-- .editorconfig
+|-- pyproject.toml
 |-- requirements.txt
 `-- README.md
 ```
+
+Challenge input files are named by challenge number, for example
+`challenges/set_01_basics/data/c06.txt`.
